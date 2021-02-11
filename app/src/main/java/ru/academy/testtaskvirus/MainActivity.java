@@ -24,21 +24,26 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        List<Item> appLabels = new ArrayList<>();
-        PackageManager pm = getApplicationContext().getPackageManager();
-        List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+        final List<Item> appLabels = new ArrayList<>();
+        final PackageManager pm = getApplicationContext().getPackageManager();
+        final List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
 
-        for (ApplicationInfo appInfo : packages) {
-            String label = pm.getApplicationLabel(appInfo).toString();
-            String dir = computeHash(appInfo.sourceDir);
-            appLabels.add(new Item(label, dir));
-        }
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (ApplicationInfo appInfo : packages) {
+                    String label = pm.getApplicationLabel(appInfo).toString();
+                    String dir = computeHash(appInfo.sourceDir);
+                    appLabels.add(new Item(label, dir));
+                }
+            }
+        });
+        thread.start();
 
         RecyclerView recyclerView = findViewById(R.id.recycler);
         testAdapter = new TestAdapter(appLabels);
         recyclerView.setAdapter(testAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
-
     }
 
     public String computeHash(String s) {
